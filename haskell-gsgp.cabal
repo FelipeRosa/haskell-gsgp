@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   -- exposed-modules:
   build-depends:       base >=4.9 && <5
+                     , vector >=0.11.0.0
   default-language:    Haskell2010
 
 executable haskell-gsgp-exe
