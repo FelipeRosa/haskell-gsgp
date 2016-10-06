@@ -6,11 +6,12 @@ main :: IO ()
 main = do
   ds <- loadTxt "/Users/felipe/Desktop/housing.data.txt" :: IO (Dataset Double)
 
-  let trainingInput  = reshape ds (0, 13, 0, 300)
-      trainingOutput = reshape ds (13, 14, 0, 300)
+  let firstLine = reshape ds (0, 13, 0, 0)
 
-  print $ shape trainingInput
-  print $ shape trainingOutput
+  putStrLn $ show (reshape ds (0, 13, 0, 1))
+  putStrLn ""
+  putStrLn $ show firstLine
+  putStrLn $ concat ["Count: ", show (count firstLine)]
+  putStrLn $ concat ["Average: ", show (sum firstLine / (fromIntegral $ count firstLine))]
 
-  print $ elementAt trainingInput (0, 0)
-  print $ elementAt trainingOutput (0, 0)
+  return ()

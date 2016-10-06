@@ -1,10 +1,8 @@
-{-# LANGUAGE OverloadedLists #-}
-
 module GSGP.Data (
   Shape
 , Dataset
 , shape
-, view
+, count
 , reshape
 , elementAt
 , loadTxt
@@ -12,7 +10,10 @@ module GSGP.Data (
 
 import System.IO (hGetContents, withFile, IOMode (ReadMode))
 
+import Data.Functor
+import Data.Foldable
 import Data.String (lines, words)
+import Data.List (intercalate)
 import Data.Vector (Vector)
 import qualified Data.Vector as V
 
@@ -24,31 +25,46 @@ data Dataset e =
   Dataset {
     dsContents :: Vector e
   , dsShape    :: Shape
-  , dsView     :: View
-  } deriving (Eq, Show)
+  }
+
+instance (Show e) => Show (Dataset e) where
+  show ds =
+    let (w, h)  = dsShape ds
+        dsLines = fmap (\i -> intercalate " " . map show . foldr (:) [] . reshape ds $ (0, w - 1, i, i)) [0..(h - 1)]
+    in
+      intercalate "\n" dsLines
+
+instance Functor Dataset where
+  fmap f ds = ds { dsContents = fmap f (dsContents ds) }
+
+instance Foldable Dataset where
+  foldr f b = foldr f b . dsContents
 
 
 shape :: Dataset e -> Shape
-shape ds =
-  let
-    (ox, ow, oy, oh) = dsView ds
-  in
-    (ow - ox, oh - oy)
+shape = dsShape
 
-view :: Dataset e -> View
-view = dsView
+count :: Dataset e -> Int
+count ds =
+  let (w, h) = dsShape ds
+  in
+    w * h
 
 
 reshape :: Dataset e -> View -> Dataset e
-reshape ds newView = ds { dsView = newView }
+reshape ds (vx, vx', vy, vy') =
+  let newShape = (vx' - vx + 1, vy' - vy + 1)
+      newContents = V.fromList . fmap (elementAt ds) . fmap (\[a, b] -> (b, a)) . sequence $ [[vy..vy'], [vx..vx']]
+  in
+    Dataset newContents newShape
+
 
 elementAt :: Dataset e -> (Int, Int) -> e
 elementAt ds (x, y) =
-  let
-    (vx, vw, vy, _) = dsView ds
-    v = dsContents ds
+  let (vw, _) = dsShape ds
+      v = dsContents ds
   in
-    v V.! ((vx + x) + (vy + y) * vw)
+    v V.! (x + y * vw)
 
 
 loadTxt :: (Read e) => String -> IO (Dataset e)
@@ -58,4 +74,4 @@ loadTxt fileName = do
       x = length (words (head ls))
       es = map read . concatMap words $ ls
 
-  return (Dataset (V.fromList es) (x, y) (0, x, 0, y))
+  return (Dataset (V.fromList es) (x, y))
