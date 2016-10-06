@@ -10,4 +10,4 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Basic dataset module (GSGP.Data) : @FelipeRosa
 
 
-[Unreleased]: https://github.com/FelipeRosa/haskell-gsgp/compare/master...dev
+[Unreleased]: https://github.com/FelipeRosa/haskell-gsgp/compare/master...develop
