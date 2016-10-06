@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  -- exposed-modules:
+  exposed-modules:     GSGP.Data
   build-depends:       base >=4.9 && <5
                      , vector >=0.11.0.0
   default-language:    Haskell2010
