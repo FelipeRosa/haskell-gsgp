@@ -8,6 +8,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - Basic dataset module (GSGP.Data) : @FelipeRosa
-
+- Basic language module (GSGP.Language) : @FelipeRosa
 
 [Unreleased]: https://github.com/FelipeRosa/haskell-gsgp/compare/master...develop
