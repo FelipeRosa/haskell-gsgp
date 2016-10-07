@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## 0.1.0 - 2016-10-06
 ### Added
 - Basic dataset module (GSGP.Data) : @FelipeRosa
 - Basic language module (GSGP.Language) : @FelipeRosa

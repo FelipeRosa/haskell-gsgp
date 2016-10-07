@@ -1,12 +1,12 @@
 name:                haskell-gsgp
 version:             0.1.0
-synopsis:            Initial project template from stack
+synopsis:            Geometric Semantic Genetic Programming in Haskell
 description:         Please see README.md
-homepage:            https://github.com/FelipeRosa/haskell-gsgp#readme
+homepage:            https://github.com/FelipeRosa/haskell-gsgp
 license:             BSD3
 license-file:        LICENSE
-author:              Felipe Soares Gonçalves Rosa
-maintainer:          felipe.sgrosa@gmail.com
+author:              Felipe Soares Gonçalves Rosa <felipe.sgrosa@gmail.com>
+maintainer:          Felipe Soares Gonçalves Rosa <felipe.sgrosa@gmail.com>
 copyright:           2016 Felipe Soares Gonçalves Rosa
 category:            Web
 build-type:          Simple
