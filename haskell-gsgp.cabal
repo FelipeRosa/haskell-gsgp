@@ -1,5 +1,5 @@
 name:                haskell-gsgp
-version:             0.1.0
+version:             0.2.0
 synopsis:            Geometric Semantic Genetic Programming in Haskell
 description:         Please see README.md
 homepage:            https://github.com/FelipeRosa/haskell-gsgp
@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     GSGP.Data
                      , GSGP.Language
+                     , GSGP.Metrics
   build-depends:       base >=4.9 && <5
                      , vector >=0.11.0.0
                      , random-fu >=0.2.7.0

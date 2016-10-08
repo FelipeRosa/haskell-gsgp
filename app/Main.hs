@@ -6,6 +6,7 @@ import Control.Monad
 
 import GSGP.Data
 import GSGP.Language
+import GSGP.Metrics
 
 
 data Arith =
@@ -44,6 +45,7 @@ main = do
   ds <- loadTxt "/Users/felipe/Desktop/housing.data.txt" :: IO (Dataset Double)
 
   let firstLine = reshape ds (0, 13, 0, 0)
+      secondLine = reshape ds (0, 13, 1, 1)
 
   putStrLn $ show (reshape ds (0, 13, 0, 1))
   putStrLn ""
@@ -55,6 +57,13 @@ main = do
   --
   arithP <- sample (randomProgram (GrowStrat 3))
 
-  putStrLn $ show (runArith arithP [1.7])
+  putStrLn $ concat ["P: ", show arithP]
+  putStrLn $ concat ["P(1.7) result: ", show (runArith arithP [1.7])]
+  putStrLn ""
+
+  --
+
+  putStrLn $ concat ["MAE: ", show (mae firstLine secondLine)]
+  putStrLn $ concat ["RMSE: ", show (rmse firstLine secondLine)]
 
   return ()

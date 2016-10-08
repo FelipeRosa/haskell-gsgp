@@ -1,12 +1,15 @@
 module GSGP.Data (
   Shape
 , Dataset
+, zipWith
 , shape
 , count
 , reshape
 , elementAt
 , loadTxt
 ) where
+
+import Prelude hiding (zipWith)
 
 import System.IO (hGetContents, withFile, IOMode (ReadMode))
 
@@ -39,6 +42,10 @@ instance Functor Dataset where
 
 instance Foldable Dataset where
   foldr f b = foldr f b . dsContents
+
+
+zipWith :: (a -> b -> c) -> Dataset a -> Dataset b -> Dataset c
+zipWith f dsA dsB = dsA { dsContents = V.zipWith f (dsContents dsA) (dsContents dsB) }
 
 
 shape :: Dataset e -> Shape
