@@ -57,6 +57,7 @@ main = do
   putStrLn ""
   putStrLn $ show firstLine
   putStrLn $ concat ["Count: ", show (count firstLine)]
+  putStrLn $ concat ["Count (mapR): ", show (mapR count (reshape ds (0, 13, 0, 1)))]
   putStrLn $ concat ["Average: ", show (sum firstLine / (fromIntegral $ count firstLine))]
   putStrLn ""
 
