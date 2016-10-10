@@ -2,6 +2,7 @@ module GSGP.Data (
   Shape
 , Dataset
 , zipWith
+, mapR
 , shape
 , count
 , reshape
@@ -46,6 +47,14 @@ instance Foldable Dataset where
 
 zipWith :: (a -> b -> c) -> Dataset a -> Dataset b -> Dataset c
 zipWith f dsA dsB = dsA { dsContents = V.zipWith f (dsContents dsA) (dsContents dsB) }
+
+
+mapR :: (Dataset a -> b) -> Dataset a -> Dataset b
+mapR fR ds =
+  let (w, h) = dsShape ds
+      contents = fmap fR . fmap (\i -> reshape ds (0, w - 1, i, i)) $ [0..h - 1]
+  in
+    Dataset (V.fromList contents) (h, 1)
 
 
 shape :: Dataset e -> Shape
