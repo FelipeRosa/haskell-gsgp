@@ -19,6 +19,7 @@ library
   exposed-modules:     GSGP.Data
                      , GSGP.Language
                      , GSGP.Metrics
+                     , GSGP.World
   build-depends:       base >=4.9 && <5
                      , vector >=0.11.0.0
                      , random-fu >=0.2.7.0
