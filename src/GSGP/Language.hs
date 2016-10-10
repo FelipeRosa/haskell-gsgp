@@ -1,5 +1,8 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 module GSGP.Language (
   Language (..)
+, LanguageConstant (..)
 , CreationStrategy (..)
 , FullStrat (..)
 , GrowStrat (..)
@@ -11,6 +14,9 @@ import Data.Random (RVar, uniform, sample)
 class Language l where
   randomTerminal :: RVar l
   randomFunction :: RVar l -> RVar l
+
+class LanguageConstant l e where
+  languageConstant :: e -> l
 
 
 class CreationStrategy s where

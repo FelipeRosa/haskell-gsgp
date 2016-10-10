@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 module Main where
 
 import Data.Random
@@ -31,6 +33,10 @@ instance Language Arith where
     n <- uniform 0 (length fs - 1)
 
     return $ (fs !! n) arg1 arg2
+
+instance LanguageConstant Arith Double where
+  languageConstant = C
+
 
 runArith :: Arith -> [Double] -> Double
 runArith (C k)       _      = k
