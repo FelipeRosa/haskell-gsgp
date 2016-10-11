@@ -8,9 +8,10 @@ module GSGP.Data (
 , mapR
 , shape
 , count
-, reshape
+, slice
 , elementAt
 , loadTxt
+, saveTxt
 ) where
 
 import Prelude hiding (zipWith)
@@ -37,7 +38,7 @@ data Dataset e =
 instance (Show e) => Show (Dataset e) where
   show ds =
     let (w, h)  = dsShape ds
-        dsLines = fmap (\i -> intercalate " " . map show . foldr (:) [] . reshape ds $ (0, w - 1, i, i)) [0..(h - 1)]
+        dsLines = fmap (\i -> intercalate " " . map show . foldr (:) [] . slice ds $ (0, w - 1, i, i)) [0..(h - 1)]
     in
       intercalate "\n" dsLines
 
@@ -69,7 +70,7 @@ zipWith f dsA dsB = dsA { dsContents = V.zipWith f (dsContents dsA) (dsContents 
 mapR :: (Dataset a -> b) -> Dataset a -> Dataset b
 mapR fR ds =
   let (w, h) = dsShape ds
-      contents = fmap fR . fmap (\i -> reshape ds (0, w - 1, i, i)) $ [0..h - 1]
+      contents = fmap fR . fmap (\i -> slice ds (0, w - 1, i, i)) $ [0..h - 1]
   in
     Dataset (V.fromList contents) (h, 1)
 
@@ -84,8 +85,8 @@ count ds =
     w * h
 
 
-reshape :: Dataset e -> View -> Dataset e
-reshape ds (vx, vx', vy, vy') =
+slice :: Dataset e -> View -> Dataset e
+slice ds (vx, vx', vy, vy') =
   let newShape = (vx' - vx + 1, vy' - vy + 1)
       newContents = V.fromList . fmap (elementAt ds) . fmap (\[a, b] -> (b, a)) . sequence $ [[vy..vy'], [vx..vx']]
   in
@@ -108,3 +109,6 @@ loadTxt fileName = do
       es = map read . concatMap words $ ls
 
   return (Dataset (V.fromList es) (x, y))
+
+saveTxt :: (Show e) => String -> Dataset e -> IO ()
+saveTxt fileName ds = writeFile fileName (show ds)

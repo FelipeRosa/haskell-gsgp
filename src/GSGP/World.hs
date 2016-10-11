@@ -2,11 +2,15 @@ module GSGP.World (
   GeneticOperator
 , EvalFunction
 , FitnessFunction
+, SelectionFunction
 , Individual (..)
+, Population
 , GeneticLanguage (..)
 , World (..)
 , applyGeneticOperator
 ) where
+
+import Control.Monad (forM)
 
 import Data.Random (RVar)
 import Data.List (transpose)
@@ -16,9 +20,10 @@ import qualified GSGP.Data as D
 import GSGP.Language (LanguageConstant, languageConstant)
 
 
-type GeneticOperator l     = [l] -> l
-type EvalFunction    l i o = Dataset i -> l -> o
-type FitnessFunction o f   = Dataset o -> f
+type GeneticOperator l       = [l] -> l
+type EvalFunction    l i o   = Dataset i -> l -> o
+type FitnessFunction o f     = Dataset o -> f
+type SelectionFunction l o f = Population l o f -> RVar (Individual l o f)
 
 data Individual l o f =
   Individual {
@@ -26,6 +31,11 @@ data Individual l o f =
   , indPhenotype :: Dataset o
   , indFitness   :: f
   }
+
+instance (Show l, Show f) => Show (Individual l o f) where
+  show ind = concat ["Program: ", show (indProgram ind), "\nFitness: ", show (indFitness ind)]
+
+type Population l o f = [Individual l o f]
 
 
 class GeneticLanguage l where
