@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## Unreleased
 ## Added
 - `GSGP.Data.fromList` & `GSGP.Data.fromList2` for creating datasets from lists (1D & 2D) : @FelipeRosa
-- Basic generic world module : @FelipeRosa
+- Basic generic world module (GSGP.World) : @FelipeRosa
+- Basic sequential world module (GSGP.World.Seq) : @FelipeRosa
+- `GSGP.Data.saveTxt` saves datasets to .txt files : @FileRosa
+- `GSGP.Metrics.mse` computes the mean squared error for two datasets : @FelipeRosa
+
+## Changed
+- Renamed `GSGP.Data.reshape` to `GSGP.Data.slice` : @FelipeRosa
+- `GSGP.Metrics.rmse` now uses the `GSGP.Metrics.mse` internally : @FelipeRosa
+
 
 ## [0.4.0] - 2016-10-10
 ### Added
