@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+## Added
+- `GSGP.Data.fromList` & `GSGP.Data.fromList2` for creating datasets from lists (1D & 2D) : @FelipeRosa
+- Basic generic world module : @FelipeRosa
 
 ## [0.4.0] - 2016-10-10
 ### Added
