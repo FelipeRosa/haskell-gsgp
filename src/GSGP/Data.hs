@@ -1,6 +1,9 @@
 module GSGP.Data (
   Shape
 , Dataset
+, fromList
+, fromList2
+, toList
 , zipWith
 , mapR
 , shape
@@ -14,8 +17,8 @@ import Prelude hiding (zipWith)
 
 import System.IO (hGetContents, withFile, IOMode (ReadMode))
 
-import Data.Functor
-import Data.Foldable
+import Data.Functor (Functor, fmap)
+import Data.Foldable (Foldable, foldr)
 import Data.String (lines, words)
 import Data.List (intercalate)
 import Data.Vector (Vector)
@@ -43,6 +46,20 @@ instance Functor Dataset where
 
 instance Foldable Dataset where
   foldr f b = foldr f b . dsContents
+
+
+fromList :: [a] -> Shape -> Dataset a
+fromList es shape = Dataset (V.fromList es) shape
+
+fromList2 :: [[a]] -> Dataset a
+fromList2 es =
+  let h = length es
+      w = length . head $ es
+  in
+    Dataset (V.fromList . concat $ es) (w, h)
+
+toList :: Dataset a -> [a]
+toList = V.toList . dsContents
 
 
 zipWith :: (a -> b -> c) -> Dataset a -> Dataset b -> Dataset c
