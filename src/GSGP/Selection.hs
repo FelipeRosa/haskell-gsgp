@@ -6,10 +6,10 @@ import Data.Random (RVar, shuffleNofM)
 import Data.List (maximumBy)
 import Data.Function (on)
 
-import GSGP.World (SelectionFunction, indFitness)
+import GSGP.World (Individual, SelectionFunction)
 
 
-tournamentSelection :: (Ord f) => Int -> SelectionFunction l o f
-tournamentSelection tournamentSize population = do
+tournamentSelection :: (Ord f) => Int -> (Individual l o f -> f) -> SelectionFunction l o f
+tournamentSelection tournamentSize adjustedFitnessFn population = do
   participants <- shuffleNofM tournamentSize (length population) population
-  return $ maximumBy (compare `on` indFitness) participants
+  return $ maximumBy (compare `on` adjustedFitnessFn) participants

@@ -19,7 +19,9 @@ library
   exposed-modules:     GSGP.Data
                      , GSGP.Language
                      , GSGP.Metrics
+                     , GSGP.Statistics
                      , GSGP.Selection
+                     , GSGP.BloatControl
                      , GSGP.World
                      , GSGP.World.Seq
   build-depends:       base >=4.9 && <5

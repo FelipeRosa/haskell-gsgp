@@ -17,6 +17,7 @@ import GSGP.Metrics
 import GSGP.Selection
 import GSGP.World
 import GSGP.World.Seq
+import GSGP.BloatControl
 
 
 data Arith =
@@ -102,9 +103,10 @@ main = do
     , swEvalFn = runArith
     , swFitnessFn = fitnessFn
     , swSelectionFn = selectionFn
+    , swBloatControlFn = parsimonyPressure
     }
 
-  (lastWorld, fitnesses, _) <- sample $ flip (iterateUntilM (\(_, _, g) -> g > 5)) (firstWorld, [], 1) $ \(w, fs, g) -> do
+  (lastWorld, fitnesses, _) <- sample $ flip (iterateUntilM (\(_, _, g) -> g > 500)) (firstWorld, [], 1) $ \(w, fs, g) -> do
     w' <- worldNextGeneration w
     let best = maximumBy (compare `on` indFitness) (swPopulation w')
     return (w', indFitness best : fs, g + 1)
