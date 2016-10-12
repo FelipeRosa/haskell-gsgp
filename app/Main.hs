@@ -34,28 +34,39 @@ instance Language Arith where
     let ts = [C k, I ix]
     n <- uniform 0 (length ts - 1)
 
-    return (ts !! n)
+    return $ Program (ts !! n) 1
 
   randomFunction randArg = do
     [arg1, arg2] <- forM [1..2] $ \_ -> randArg
     let fs = [Add, Sub, Mul]
     n <- uniform 0 (length fs - 1)
 
-    return $ (fs !! n) arg1 arg2
+    let code     = (fs !! n) (programCode arg1) (programCode arg2)
+        codeSize = programSize arg1 + programSize arg2 + 1
+
+    return $ Program code codeSize
 
 instance LanguageConstant Arith Double where
-  languageConstant = C
+  languageConstant = flip Program 1 . C
 
 instance GeneticLanguage Arith where
   generateMutationFunction = do
     t1 <- randomProgram (GrowStrat 2)
     t2 <- randomProgram (GrowStrat 2)
-    return $ \[t] -> Add t (Mul (C 0.1) (Sub t1 t2))
+    return $ \[t] ->
+      let code     = Add (programCode t) (Mul (C 0.1) (Sub (programCode t1) (programCode t2)))
+          codeSize = programSize t + programSize t1 + programSize t2 + 4
+      in
+        Program code codeSize
 
   generateCrossoverFunction = do
     a <- uniform 0 1
     let b = 1 - a
-    return $ \[t1, t2] -> Add (Mul (C a) t1) (Mul (C b) t2)
+    return $ \[t1, t2] ->
+      let code     = Add (Mul (C a) (programCode t1)) (Mul (C b) (programCode t2))
+          codeSize = programSize t1 + programSize t2 + 5
+      in
+        Program code codeSize
 
 runArith :: Dataset Double -> Arith -> Double
 runArith _      (C k)       = k
@@ -67,20 +78,20 @@ runArith inputs (Mul a1 a2) = runArith inputs a1 * runArith inputs a2
 
 main :: IO ()
 main = do
-  ds <- loadTxt "/Users/felipe/Desktop/housing.data.txt" :: IO (Dataset Double)
+  ds <- loadTxt "/Users/felipe/Desktop/faculdade/POC/housing.data.txt" :: IO (Dataset Double)
 
-  let trainInput  = slice ds (0, 12, 0, 300)
-      trainOutput = slice ds (13, 13, 0, 300)
+  let trainInput  = slice ds (0, 12, 204, 503)
+      trainOutput = slice ds (13, 13, 204, 503)
 
-      testInput  = slice ds (0, 12, 301, 504)
-      testOutput = slice ds (13, 13, 301, 504)
+      testInput  = slice ds (0, 12, 0, 203)
+      testOutput = slice ds (13, 13, 0, 203)
 
       fitnessFn p = 1 / (1 + mae trainOutput p)
       selectionFn = tournamentSelection 7
 
   initialPopulation <- sample $ forM [1..1000] $ \_ -> do
     l <- randomProgram (GrowStrat 2)
-    let p = mapR (flip runArith l) trainInput
+    let p = mapR (flip runArith (programCode l)) trainInput
         f = fitnessFn p
     return $ Individual l p f
 
@@ -96,14 +107,17 @@ main = do
   (lastWorld, fitnesses, _) <- sample $ flip (iterateUntilM (\(_, _, g) -> g > 5)) (firstWorld, [], 1) $ \(w, fs, g) -> do
     w' <- worldNextGeneration w
     let best = maximumBy (compare `on` indFitness) (swPopulation w')
-    return (w, indFitness best : fs, g + 1)
+    return (w', indFitness best : fs, g + 1)
 
   let best = maximumBy (compare `on` indFitness) (swPopulation lastWorld)
-      bestP = mapR (flip runArith (indProgram best)) testInput
+      bestP = mapR (flip runArith (programCode . indProgram $ best)) testInput
+      maxProgramSize = maximum (fmap (programSize . indProgram) (swPopulation lastWorld))
 
   putStrLn $ show fitnesses
+  putStrLn $ show (indProgram best)
   putStrLn $ show (rmse testOutput bestP)
+  putStrLn $ show maxProgramSize
 
-  saveTxt "/Users/felipe/Desktop/haskell-pred.txt" (fromList2 (transpose [fmap fromIntegral [0..count bestP - 1], toList bestP]))
+  saveTxt "/Users/felipe/Desktop/faculdade/POC/haskell-pred.txt" (fromList2 (transpose [fmap fromIntegral [0..count bestP - 1], toList bestP]))
 
   return ()

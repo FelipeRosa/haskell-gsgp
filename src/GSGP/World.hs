@@ -17,17 +17,17 @@ import Data.List (transpose)
 
 import GSGP.Data (Dataset)
 import qualified GSGP.Data as D
-import GSGP.Language (LanguageConstant, languageConstant)
+import GSGP.Language (Program, programCode, LanguageConstant, languageConstant)
 
 
-type GeneticOperator l       = [l] -> l
+type GeneticOperator l       = [Program l] -> Program l
 type EvalFunction    l i o   = Dataset i -> l -> o
 type FitnessFunction o f     = Dataset o -> f
 type SelectionFunction l o f = Population l o f -> RVar (Individual l o f)
 
 data Individual l o f =
   Individual {
-    indProgram   :: l
+    indProgram   :: Program l
   , indPhenotype :: Dataset o
   , indFitness   :: f
   }
@@ -51,7 +51,7 @@ applyGeneticOperator ::
   GeneticOperator l -> EvalFunction l i o -> FitnessFunction o f -> Dataset i -> [Individual l o f] -> Individual l o f
 applyGeneticOperator opFn evalFn fitnessFn inputs inds =
   let childProgram = opFn (fmap indProgram inds)
-      childPhenotype = (flip D.fromList (length inds, 1)) . fmap ((evalFn inputs) . opFn . fmap languageConstant) . transpose . fmap (D.toList . indPhenotype) $ inds
+      childPhenotype = (flip D.fromList (length inds, 1)) . fmap ((evalFn inputs . programCode) . opFn . fmap languageConstant) . transpose . fmap (D.toList . indPhenotype) $ inds
       childFitness = fitnessFn childPhenotype
   in
     Individual childProgram childPhenotype childFitness

@@ -3,12 +3,14 @@ module GSGP.World.Seq (
 , SeqWorld (..)
 ) where
 
+import Debug.Trace
+
 import Control.Monad (forM)
 
 import Data.Random (RVar, shuffleNofM)
 
 import GSGP.Data (Dataset)
-import GSGP.Language (LanguageConstant)
+import GSGP.Language (LanguageConstant, programSize)
 import GSGP.World
 
 
@@ -38,8 +40,8 @@ instance (LanguageConstant l o, GeneticLanguage l) => World (SeqWorld l i o f) w
 
     selectedForMut   <- shuffleNofM mutN pN population
     selectedForCross <- do
-      inds1 <- shuffleNofM crossN pN population
-      inds2 <- shuffleNofM crossN pN population
+      inds1 <- forM [1..crossN] $ \_ -> (swSelectionFn w) population
+      inds2 <- forM [1..crossN] $ \_ -> (swSelectionFn w) population
       return $ zipWith (\a b -> [a, b]) inds1 inds2
 
     mutResults <- forM selectedForMut $ \ind -> do
