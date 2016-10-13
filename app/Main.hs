@@ -97,13 +97,16 @@ main = do
     return $ Individual l p f
 
   let firstWorld = SeqWorld {
-      swParams = SeqWorldParams 0.4 0.3
-    , swTrainInput = trainInput
+      swParams = SeqWorldParams {
+        swpMutRate    = 0.4
+      , swpCrossRate  = 0.3
+      , swpTrainInput = trainInput
+      , swpEvalFn      = runArith
+      , swpFitnessFn   = fitnessFn
+      , swpSelectionFn = selectionFn
+      , swpBloatControlFn = parsimonyPressure
+      }
     , swPopulation = initialPopulation
-    , swEvalFn = runArith
-    , swFitnessFn = fitnessFn
-    , swSelectionFn = selectionFn
-    , swBloatControlFn = parsimonyPressure
     }
 
   (lastWorld, fitnesses, _) <- sample $ flip (iterateUntilM (\(_, _, g) -> g > 500)) (firstWorld, [], 1) $ \(w, fs, g) -> do
