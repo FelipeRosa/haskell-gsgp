@@ -3,12 +3,21 @@
 module Main where
 
 import Data.Random
+import Data.List
+import Data.Function
 
 import Control.Monad
+import Control.Monad.Loops
+
+import Debug.Trace (trace)
 
 import GSGP.Data
 import GSGP.Language
 import GSGP.Metrics
+import GSGP.Selection
+import GSGP.World
+import GSGP.World.Seq
+import GSGP.BloatControl
 
 
 data Arith =
@@ -22,55 +31,95 @@ data Arith =
 instance Language Arith where
   randomTerminal = do
     k  <- uniform 0 10
-    let ts = [C k, I 0]
+    ix <- uniform 0 12
+    let ts = [C k, I ix]
     n <- uniform 0 (length ts - 1)
 
-    return (ts !! n)
+    return $ Program (ts !! n) 1
 
   randomFunction randArg = do
     [arg1, arg2] <- forM [1..2] $ \_ -> randArg
     let fs = [Add, Sub, Mul]
     n <- uniform 0 (length fs - 1)
 
-    return $ (fs !! n) arg1 arg2
+    let code     = (fs !! n) (programCode arg1) (programCode arg2)
+        codeSize = programSize arg1 + programSize arg2 + 1
+
+    return $ Program code codeSize
 
 instance LanguageConstant Arith Double where
-  languageConstant = C
+  languageConstant = flip Program 1 . C
 
+instance GeneticLanguage Arith where
+  generateMutationFunction = do
+    t1 <- randomProgram (GrowStrat 2)
+    t2 <- randomProgram (GrowStrat 2)
+    return $ \[t] ->
+      let code     = Add (programCode t) (Mul (C 0.1) (Sub (programCode t1) (programCode t2)))
+          codeSize = programSize t + programSize t1 + programSize t2 + 4
+      in
+        Program code codeSize
 
-runArith :: Arith -> [Double] -> Double
-runArith (C k)       _      = k
-runArith (I ix)      inputs = inputs !! ix
-runArith (Add a1 a2) inputs = runArith a1 inputs + runArith a2 inputs
-runArith (Sub a1 a2) inputs = runArith a1 inputs - runArith a2 inputs
-runArith (Mul a1 a2) inputs = runArith a1 inputs * runArith a2 inputs
+  generateCrossoverFunction = do
+    a <- uniform 0 1
+    let b = 1 - a
+    return $ \[t1, t2] ->
+      let code     = Add (Mul (C a) (programCode t1)) (Mul (C b) (programCode t2))
+          codeSize = programSize t1 + programSize t2 + 5
+      in
+        Program code codeSize
+
+runArith :: Dataset Double -> Arith -> Double
+runArith _      (C k)       = k
+runArith inputs (I ix)      = elementAt inputs (ix, 0)
+runArith inputs (Add a1 a2) = runArith inputs a1 + runArith inputs a2
+runArith inputs (Sub a1 a2) = runArith inputs a1 - runArith inputs a2
+runArith inputs (Mul a1 a2) = runArith inputs a1 * runArith inputs a2
 
 
 main :: IO ()
 main = do
-  ds <- loadTxt "/Users/felipe/Desktop/housing.data.txt" :: IO (Dataset Double)
+  ds <- loadTxt "/Users/felipe/Desktop/faculdade/POC/housing.data.txt" :: IO (Dataset Double)
 
-  let firstLine = reshape ds (0, 13, 0, 0)
-      secondLine = reshape ds (0, 13, 1, 1)
+  let trainInput  = slice ds (0, 12, 204, 503)
+      trainOutput = slice ds (13, 13, 204, 503)
 
-  putStrLn $ show (reshape ds (0, 13, 0, 1))
-  putStrLn ""
-  putStrLn $ show firstLine
-  putStrLn $ concat ["Count: ", show (count firstLine)]
-  putStrLn $ concat ["Count (mapR): ", show (mapR count (reshape ds (0, 13, 0, 1)))]
-  putStrLn $ concat ["Average: ", show (sum firstLine / (fromIntegral $ count firstLine))]
-  putStrLn ""
+      testInput  = slice ds (0, 12, 0, 203)
+      testOutput = slice ds (13, 13, 0, 203)
 
-  --
-  arithP <- sample (randomProgram (GrowStrat 3))
+      fitnessFn p = 1 / (1 + mae trainOutput p)
+      selectionFn = tournamentSelection 7
 
-  putStrLn $ concat ["P: ", show arithP]
-  putStrLn $ concat ["P(1.7) result: ", show (runArith arithP [1.7])]
-  putStrLn ""
+  initialPopulation <- sample $ forM [1..1000] $ \_ -> do
+    l <- randomProgram (GrowStrat 2)
+    let p = mapR (flip runArith (programCode l)) trainInput
+        f = fitnessFn p
+    return $ Individual l p f
 
-  --
+  let firstWorld = SeqWorld {
+      swParams = SeqWorldParams 0.4 0.3
+    , swTrainInput = trainInput
+    , swPopulation = initialPopulation
+    , swEvalFn = runArith
+    , swFitnessFn = fitnessFn
+    , swSelectionFn = selectionFn
+    , swBloatControlFn = parsimonyPressure
+    }
 
-  putStrLn $ concat ["MAE: ", show (mae firstLine secondLine)]
-  putStrLn $ concat ["RMSE: ", show (rmse firstLine secondLine)]
+  (lastWorld, fitnesses, _) <- sample $ flip (iterateUntilM (\(_, _, g) -> g > 500)) (firstWorld, [], 1) $ \(w, fs, g) -> do
+    w' <- worldNextGeneration w
+    let best = maximumBy (compare `on` indFitness) (swPopulation w')
+    return (w', indFitness best : fs, g + 1)
+
+  let best = maximumBy (compare `on` indFitness) (swPopulation lastWorld)
+      bestP = mapR (flip runArith (programCode . indProgram $ best)) testInput
+      maxProgramSize = maximum (fmap (programSize . indProgram) (swPopulation lastWorld))
+
+  putStrLn $ show fitnesses
+  putStrLn $ show (indProgram best)
+  putStrLn $ show (rmse testOutput bestP)
+  putStrLn $ show maxProgramSize
+
+  saveTxt "/Users/felipe/Desktop/faculdade/POC/haskell-pred.txt" (fromList2 (transpose [fmap fromIntegral [0..count bestP - 1], toList bestP]))
 
   return ()

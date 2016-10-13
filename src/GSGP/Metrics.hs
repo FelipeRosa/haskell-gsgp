@@ -1,5 +1,6 @@
 module GSGP.Metrics (
   mae
+, mse
 , rmse
 ) where
 
@@ -14,9 +15,12 @@ mae xs ys =
   in
     sum diff / fromIntegral n
 
-rmse :: (Floating e) => Dataset e -> Dataset e -> e
-rmse xs ys =
+mse :: (Fractional e) => Dataset e -> Dataset e -> e
+mse xs ys =
   let sqrDiff = fmap (^2) . D.zipWith (-) xs $ ys
       n = D.count xs
   in
-    sqrt (sum sqrDiff) / fromIntegral n
+    sum sqrDiff / fromIntegral n
+
+rmse :: (Floating e) => Dataset e -> Dataset e -> e
+rmse xs ys = sqrt (mse xs ys)

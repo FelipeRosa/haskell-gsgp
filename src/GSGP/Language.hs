@@ -1,26 +1,41 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module GSGP.Language (
-  Language (..)
+  Program (..)
+, Language (..)
 , LanguageConstant (..)
 , CreationStrategy (..)
 , FullStrat (..)
 , GrowStrat (..)
 ) where
 
+import Data.Function (on)
 import Data.Random (RVar, uniform, sample)
 
 
+data Program l =
+  Program {
+    programCode :: l
+  , programSize :: Int
+  }
+
+instance (Eq l) => Eq (Program l) where
+  (==) = (==) `on` programCode
+
+instance (Show l) => Show (Program l) where
+  show p = concat ["[Program code=", show (programCode p), ", Program Size=", show (programSize p), "]"]
+
+
 class Language l where
-  randomTerminal :: RVar l
-  randomFunction :: RVar l -> RVar l
+  randomTerminal :: RVar (Program l)
+  randomFunction :: RVar (Program l) -> RVar (Program l)
 
 class LanguageConstant l e where
-  languageConstant :: e -> l
+  languageConstant :: e -> Program l
 
 
 class CreationStrategy s where
-  randomProgram :: (Language l) => s -> RVar l
+  randomProgram :: (Language l) => s -> RVar (Program l)
 
 
 data FullStrat = FullStrat Int deriving (Eq, Show)
