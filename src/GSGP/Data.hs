@@ -103,7 +103,7 @@ elementAt ds (x, y) =
 
 loadTxt :: (Read e) => String -> IO (Dataset e)
 loadTxt fileName = do
-  ls <- fmap lines (readFile fileName)
+  ls <- fmap (filter ((> 0) . length) . lines) (readFile fileName)
   let y = length ls
       x = length (words (head ls))
       es = map read . concatMap words $ ls
