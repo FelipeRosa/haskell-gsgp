@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+- `GSGP.Data.splitR`, `GSGP.Data.splitC` and `GSGP.Data.splitRC` functions
+
 ## [0.6.0] - 2016-10-13
 ### Changed
 - Moved train input, evaluation function, selection function, fitness function and bloat control function from `GSGP.World.Seq.SeqWorld` to `GSGP.World.Seq.SeqWorldParams`
