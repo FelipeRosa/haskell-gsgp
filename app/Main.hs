@@ -81,11 +81,12 @@ main :: IO ()
 main = do
   ds <- loadTxt "/Users/felipe/Desktop/faculdade/POC/housing.data.txt" :: IO (Dataset Double)
 
-  let trainInput  = slice ds (0, 12, 204, 503)
-      trainOutput = slice ds (13, 13, 204, 503)
-
-      testInput  = slice ds (0, 12, 0, 203)
-      testOutput = slice ds (13, 13, 0, 203)
+  -- let trainInput  = slice ds (0, 12, 204, 503)
+  --     trainOutput = slice ds (13, 13, 204, 503)
+  --
+  --     testInput  = slice ds (0, 12, 0, 203)
+  --     testOutput = slice ds (13, 13, 0, 203)
+  let (testInput, testOutput, trainInput, trainOutput) = splitRC ds 204 13
 
       fitnessFn p = 1 / (1 + mae trainOutput p)
       selectionFn = tournamentSelection 7
@@ -109,7 +110,7 @@ main = do
     , swPopulation = initialPopulation
     }
 
-  (lastWorld, fitnesses, _) <- sample $ flip (iterateUntilM (\(_, _, g) -> g > 500)) (firstWorld, [], 1) $ \(w, fs, g) -> do
+  (lastWorld, fitnesses, _) <- sample $ flip (iterateUntilM (\(_, _, g) -> g > 50)) (firstWorld, [], 1) $ \(w, fs, g) -> do
     w' <- worldNextGeneration w
     let best = maximumBy (compare `on` indFitness) (swPopulation w')
     return (w', indFitness best : fs, g + 1)

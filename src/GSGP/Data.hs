@@ -8,6 +8,9 @@ module GSGP.Data (
 , mapR
 , shape
 , count
+, splitR
+, splitC
+, splitRC
 , slice
 , elementAt
 , loadTxt
@@ -84,6 +87,27 @@ count ds =
   in
     w * h
 
+
+splitR :: Dataset e -> Int -> (Dataset e, Dataset e)
+splitR ds r =
+  let (w, h) = dsShape ds
+  in
+    (slice ds (0, w - 1, 0, r - 1), slice ds (0, w - 1, r, h - 1))
+
+splitC :: Dataset e -> Int -> (Dataset e, Dataset e)
+splitC ds c =
+  let (w, h) = dsShape ds
+  in
+    (slice ds (0, c - 1, 0, h - 1), slice ds (c, w - 1, 0, h - 1))
+
+splitRC :: Dataset e -> Int -> Int -> (Dataset e, Dataset e, Dataset e, Dataset e)
+splitRC ds r c =
+  let (w, h) = dsShape ds
+  in
+    (slice ds (0, c - 1, 0, r - 1),
+     slice ds (c, w - 1, 0, r - 1),
+     slice ds (0, c - 1, r, h - 1),
+     slice ds (c, w - 1, r, h - 1))
 
 slice :: Dataset e -> View -> Dataset e
 slice ds (vx, vx', vy, vy') =
