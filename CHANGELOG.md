@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.5.1] - 2016-10-13
+## Changed
+- `GSGP.Data.loadTxt` now filters blank lines from the dataset files
+
+
 ## [0.5.0] - 2016-10-12
 ## Added
 - `GSGP.Data.fromList` & `GSGP.Data.fromList2` for creating datasets from lists (1D & 2D)
@@ -44,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 [Unreleased]: https://github.com/FelipeRosa/haskell-gsgp/compare/master...develop
+[0.5.1]: https://github.com/FelipeRosa/haskell-gsgp/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/FelipeRosa/haskell-gsgp/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/FelipeRosa/haskell-gsgp/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/FelipeRosa/haskell-gsgp/compare/v0.2.0...v0.3.0
