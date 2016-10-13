@@ -15,50 +15,51 @@ import GSGP.BloatControl (BloatControlFunction)
 import GSGP.World
 
 
-data SeqWorldParams =
+data SeqWorldParams l i o f =
   SeqWorldParams {
-    swpMutRate   :: Double
-  , swpCrossRate :: Double
-  } deriving (Eq, Show)
+    swpMutRate        :: Double
+  , swpCrossRate      :: Double
+  , swpTrainInput     :: Dataset i
+  , swpEvalFn         :: EvalFunction l i o
+  , swpFitnessFn      :: FitnessFunction o f
+  , swpSelectionFn    :: (Individual l o f -> f) -> SelectionFunction l o f
+  , swpBloatControlFn :: BloatControlFunction l o f
+  }
 
 data SeqWorld l i o f =
   SeqWorld {
-    swParams         :: SeqWorldParams
-  , swTrainInput     :: Dataset i
+    swParams         :: SeqWorldParams l i o f
   , swPopulation     :: Population l o f
-  , swEvalFn         :: EvalFunction l i o
-  , swFitnessFn      :: FitnessFunction o f
-  , swSelectionFn    :: (Individual l o f -> f) -> SelectionFunction l o f
-  , swBloatControlFn :: BloatControlFunction l o f
   }
 
 instance (LanguageConstant l o, GeneticLanguage l) => World (SeqWorld l i o f) where
   worldNextGeneration w = do
     let population = swPopulation w
         pN = length population
+        params = swParams w
 
-        mutN   = truncate ((swpMutRate . swParams $ w) * fromIntegral pN)
-        crossN = truncate ((swpCrossRate . swParams $ w) * fromIntegral pN)
+        mutN   = truncate (swpMutRate params * fromIntegral pN)
+        crossN = truncate (swpCrossRate params * fromIntegral pN)
 
-        adjustedFitnessFn = (swBloatControlFn w) population
+        adjustedFitnessFn = swpBloatControlFn params population
 
     selectedForMut   <- shuffleNofM mutN pN population
     selectedForCross <- do
-      inds1 <- forM [1..crossN] $ \_ -> (swSelectionFn w adjustedFitnessFn) population
-      inds2 <- forM [1..crossN] $ \_ -> (swSelectionFn w adjustedFitnessFn) population
+      inds1 <- forM [1..crossN] $ \_ -> (swpSelectionFn params adjustedFitnessFn) population
+      inds2 <- forM [1..crossN] $ \_ -> (swpSelectionFn params adjustedFitnessFn) population
       return $ zipWith (\a b -> [a, b]) inds1 inds2
 
     mutResults <- forM selectedForMut $ \ind -> do
       mutFn <- generateMutationFunction
-      return $ applyGeneticOperator mutFn (swEvalFn w) (swFitnessFn w) (swTrainInput w) [ind]
+      return $ applyGeneticOperator mutFn (swpEvalFn params) (swpFitnessFn params) (swpTrainInput params) [ind]
 
     crossResults <- forM selectedForCross $ \inds -> do
       crossFn <- generateCrossoverFunction
-      return $ applyGeneticOperator crossFn (swEvalFn w) (swFitnessFn w) (swTrainInput w) inds
+      return $ applyGeneticOperator crossFn (swpEvalFn params) (swpFitnessFn params) (swpTrainInput params) inds
 
     let iPopulation = concat [population, mutResults, crossResults]
-        iAdjustedFitnessFn = (swBloatControlFn w) iPopulation
+        iAdjustedFitnessFn = swpBloatControlFn params iPopulation
 
-    nextPopulation <- forM [1..pN] $ \_ -> (swSelectionFn w iAdjustedFitnessFn) iPopulation
+    nextPopulation <- forM [1..pN] $ \_ -> (swpSelectionFn params iAdjustedFitnessFn) iPopulation
 
     return $ w { swPopulation = nextPopulation }
