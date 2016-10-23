@@ -20,6 +20,9 @@ data Arith =
   | Add Arith Arith
   | Sub Arith Arith
   | Mul Arith Arith
+  | Div Arith Arith
+  | Log Arith
+  | Exp Arith
 
 instance Show Arith where
   show (C e) = show e
@@ -27,10 +30,13 @@ instance Show Arith where
   show (Add a1 a2) = concat ["(", show a1, " + ", show a2, ")"]
   show (Sub a1 a2) = concat ["(", show a1, " - ", show a2, ")"]
   show (Mul a1 a2) = concat ["(", show a1, " * ", show a2, ")"]
+  show (Div a1 a2) = concat ["(", show a1, " / ", show a2, ")"]
+  show (Log a)     = concat ["log(", show a, ")"]
+  show (Exp a)     = concat ["exp(", show a, ")"]
 
 instance Language Arith where
   randomTerminal = do
-    k  <- uniform 0 10
+    k  <- uniform 0 5
     ix <- uniform 0 12
     let ts = [C k, I ix]
     n <- uniform 0 (length ts - 1)
@@ -38,12 +44,29 @@ instance Language Arith where
     return $ Program (ts !! n) 1
 
   randomFunction randArg = do
-    [arg1, arg2] <- forM [1..2] $ \_ -> randArg
-    let fs = [Add, Sub, Mul]
-    n <- uniform 0 (length fs - 1)
+    let binaryOps = [Add, Sub, Mul, Div]
+        unaryOps  = [Log, Exp]
 
-    let code     = (fs !! n) (programCode arg1) (programCode arg2)
-        codeSize = programSize arg1 + programSize arg2 + 1
+    p <- uniform False True
+
+    (code, codeSize) <-
+      if p
+        then do
+          n <- uniform 0 (length binaryOps - 1)
+          [arg1, arg2] <- forM [1..2] $ \_ -> randArg
+
+          let code     = (binaryOps !! n) (programCode arg1) (programCode arg2)
+              codeSize = programSize arg1 + programSize arg2 + 1
+
+          return (code, codeSize)
+        else do
+          n   <- uniform 0 (length unaryOps - 1)
+          arg <- randArg
+
+          let code     = (unaryOps !! n) (programCode arg)
+              codeSize = programSize arg + 1
+
+          return (code, codeSize)
 
     return $ Program code codeSize
 
@@ -76,3 +99,16 @@ evalArith inputs (I ix)      = elementAt inputs (ix, 0)
 evalArith inputs (Add a1 a2) = evalArith inputs a1 + evalArith inputs a2
 evalArith inputs (Sub a1 a2) = evalArith inputs a1 - evalArith inputs a2
 evalArith inputs (Mul a1 a2) = evalArith inputs a1 * evalArith inputs a2
+evalArith inputs (Div a1 a2) =
+  let r2 = evalArith inputs a2
+  in
+    if r2 == 0
+      then 0
+      else evalArith inputs a1 / r2
+evalArith inputs (Log a) =
+  let r = evalArith inputs a
+  in
+    if r > 0
+      then log r
+      else 0
+evalArith inputs (Exp a) = exp (evalArith inputs a)

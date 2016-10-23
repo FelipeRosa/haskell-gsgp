@@ -47,7 +47,7 @@ main = do
     , swPopulation = initialPopulation
     }
 
-  (lastWorld, fitnesses, _) <- sample $ flip (iterateUntilM (\(_, _, g) -> g > 5)) (firstWorld, [], 1) $ \(w, fs, g) -> do
+  (lastWorld, fitnesses, _) <- sample $ flip (iterateUntilM (\(_, _, g) -> g > 50)) (firstWorld, [], 1) $ \(w, fs, g) -> do
     w' <- worldNextGeneration w
     let best = maximumBy (compare `on` indFitness) (swPopulation w')
     return (w', indFitness best : fs, g + 1)
