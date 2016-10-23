@@ -18,6 +18,7 @@ library
   other-extensions:    MultiParamTypeClasses
   exposed-modules:     GSGP.Data
                      , GSGP.Language
+                     , GSGP.Language.Arith
                      , GSGP.Metrics
                      , GSGP.Statistics
                      , GSGP.Selection
